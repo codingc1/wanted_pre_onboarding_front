@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import axios  from "axios";
 import {API} from '../../../api/api'
 import {axiosWithToken} from '../../../api/api-token'
 import {TodoAdd} from './todo-add'
@@ -9,23 +8,61 @@ import {TodoAdd} from './todo-add'
 
 export const TodoList = () => {
   let navigate = useNavigate();
-  // const {todoId} = useParams();
   
   const [todoList, setTodoList] = useState([]) //{todo: 'todo', userId: 1, id: 1, isCompleted: false}
     const goHome=()=>navigate('/')
 
-useEffect(()=>{
-  const init=async()=>{
-    try{
+  const fetchTodo=async()=>{
       const { data } = await axiosWithToken.get(`${API.todos}`, );
       console.log(data, 'data')   
       setTodoList(data)
+    }
+useEffect(()=>{
+  const init=async()=>{
+    try{
+      fetchTodo()
     } catch(e) {
       console.log(e, 'e')
     }
   }
   init()
 },[])    
+
+
+const onChangeTodo =(e, todo) => {
+  const index = todoList.findIndex(el => el.id === todo.id)
+      console.log(index, 'index')   
+      if(index !== -1){
+        const newTodos = [...todoList]
+        newTodos[index].todo = e.target.value
+        setTodoList(newTodos)
+      }
+}
+const handleUpdateToto = async(todo) => {
+  try{
+    const { data } = await axiosWithToken.put(`${API.todos}/${todo.id}`, { todo:todo.todo,isCompleted:todo.isCompleted } ); 
+    if(data){
+      fetchTodo()
+    }
+  } catch(e) {
+    console.log(e, 'e')
+  }
+}
+  const deleteTodo=async(todo)=>{
+    try{
+      const result = await axiosWithToken.delete(`${API.todos}/${todo.id}` );
+      if(result.status === 204){
+        fetchTodo()
+      }
+      
+    } catch(e) {
+      console.log(e, 'e')
+    }
+  }
+
+  
+
+
   return (
     <div className="w-full flex flex-col items-center">
       <div className="w-full max-w-sm flex flex-col justify-center items-center">
@@ -40,24 +77,26 @@ useEffect(()=>{
               
               <div className="w-full " >
                   <div className="w-full h-8 flex items-center align-middle">
-                    {/* <TodoUpdateModal todoItem={el} /> */}
+                    <input className='w-full input-lime' placeholder="todo" value={el.todo} onChange={(e)=>onChangeTodo(e, el)}  />
                     <div className='flex items-center hover:text-blue-400 cursor-pointer'
                       onClick={()=>{
    
                         
                       }}
                     >{el.todo}</div>
+                    <button onClick={()=>handleUpdateToto(el)}>저장</button>
+                    <button onClick={()=>deleteTodo(el)}>삭제</button>
                   </div>
               </div>
               <div ></div>
-            {/* <TodoDelButton todoItem={el} /> */}
+
             </div>
           ))}
         </div>
       </div>
-      {/* <Outlet /> */}
-      <TodoAdd />
-      {/* <TodoAdd /> */}
+
+      <TodoAdd setTodoList={setTodoList} />
+   
     </div>
   );
 };

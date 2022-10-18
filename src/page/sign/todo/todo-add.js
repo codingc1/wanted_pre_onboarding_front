@@ -4,22 +4,24 @@ import { useState } from "react"
 import {API} from '../../../api/api'
 import {axiosWithToken} from '../../../api/api-token'
 
-export const TodoAdd=()=>{
+export const TodoAdd=({setTodoList})=>{
     const [todo, setTodo]=useState('')
-    const [content, setContent]=useState('')
 
     const onChangeToto = (e) => {
         setTodo( e.target.value)
       }
-    const onChangeContent = (e) => {
-        setContent( e.target.value)
-    }
    
-
+    const fetchTodo=async()=>{
+        const { data } = await axiosWithToken.get(`${API.todos}`, );
+        console.log(data, 'data')   
+        setTodoList(data)
+      }
     const submit=async()=>{ 
         try{
             const { data } = await axiosWithToken.post(`${API.todos}`, { todo } );
-            console.log(data, 'data')   
+            if(data){
+                fetchTodo()
+            }
             
           } catch(e) {
             console.log(e, 'e')
@@ -35,7 +37,6 @@ export const TodoAdd=()=>{
                 <div className="w-full flex " >
                     <div className="w-full " style={{flex:1}}>
                         <input className='w-full input-lime' placeholder="todo" value={todo} onChange={onChangeToto}  />
-                        {/* <textarea className='w-full input-lime' style={{resize:'none'}} placeholder="content" value={content} onChange={onChangeContent}  /> */}
                     </div>
                     <button className=" w-12 flex justify-center items-center bg-lime-300" onClick={submit}>추가</button>
                 </div>
